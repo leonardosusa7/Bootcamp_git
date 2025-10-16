@@ -1,35 +1,43 @@
-from data_loader import load_data
-from data_cleaner import (
-    normalize_activities,
-    format_health,
-    combine_data,
-    merge_with_users,
-    clean_final_df
+import logging
+from modules.data_loader import load_data
+from modules.data_cleaner import clean_data
+from modules.data_merger import merge_data
+
+# 🔧 Configurar logging
+logging.basicConfig(
+    level=logging.INFO,  # Nivel de detalle del log
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    handlers=[
+        logging.FileHandler("logs/pet_data.log", mode="w", encoding="utf-8"),  # Archivo donde se guardan los logs
+        logging.StreamHandler()  # También muestra los mensajes en la consola
+    ]
 )
 
 def all_pet_data(activities_pet, health_pet, users_pet):
-    """Ejecuta el pipeline completo de integración de datos de mascotas."""
-    
-    # 1️⃣ Cargar datos
-    activities, health, users = load_data(activities_pet, health_pet, users_pet)
+    """
+    Combina, limpia y unifica los datos de actividades, salud y usuarios de mascotas.
+    """
+    logging.info("=== Inicio del proceso de integración de datos ===")
 
-    # 2️⃣ Transformar
-    activities = normalize_activities(activities)
-    health = format_health(health)
-    
-    # 3️⃣ Combinar
-    combined = combine_data(activities, health)
-    merged = merge_with_users(combined, users)
-    
-    # 4️⃣ Limpiar y devolver
-    final_df = clean_final_df(merged)
-    return final_df
+    try:
+        # 1️⃣ Cargar datos
+        logging.info("Cargando archivos CSV...")
+        activities, health, users = load_data(activities_pet, health_pet, users_pet)
+        logging.info("Archivos cargados correctamente.")
 
-if __name__ == "__main__":
-    # Ejemplo de uso
-    df = all_pet_data(
-        "Data\pet_activities.csv",
-        "Data\pet_health.csv",
-        "Data\users.csv"
-    )
-    print(df.head())
+        # 2️⃣ Limpiar datos
+        logging.info("Iniciando limpieza y normalización de datos...")
+        activities, health = clean_data(activities, health)
+        logging.info("Limpieza completada.")
+
+        # 3️⃣ Unir datos
+        logging.info("Uniendo datos de actividades, salud y usuarios...")
+        final_df = merge_data(activities, health, users)
+        logging.info("Datos combinados exitosamente.")
+
+        logging.info("=== Proceso completado sin errores ===")
+        return final_df
+
+    except Exception as e:
+        logging.error(f"Ocurrió un error durante el proceso: {e}")
+        raise
