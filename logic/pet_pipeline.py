@@ -4,6 +4,19 @@ from modules.data_cleaner import clean_data
 from modules.data_merger import merge_data
 
 # 🔧 Configurar logging
+import pandas as pd
+
+def load_csv(file_path):
+    try:
+        df = pd.read_csv(file_path)
+        if df.empty:
+            logging.warning(f"El archivo {file_path} está vacío. Se omite la carga.")
+            return None
+        return df
+    except Exception as e:
+        logging.error(f"Error al cargar el archivo {file_path}: {e}")
+        return None
+
 logging.basicConfig(
     level=logging.INFO,  # Nivel de detalle del log
     format="%(asctime)s - %(levelname)s - %(message)s",
